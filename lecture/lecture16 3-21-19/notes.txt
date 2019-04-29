@@ -1,0 +1,259 @@
++------------+
+| Lecture 16 |
++------------+
+
+PRODUCE/CONSUMER (a.k.a. SHARED BUFFER PROBLEM)
+-- Given a shared buffer (i.e., array) of a fixed size n
+-- One or more producer threads
+-- One or more consumer threads
+
+							/* shared/global memory */
+							int n = 8;
+							buffer[n];
+
+	/* producer */															/* consumer */
+	while(1)																		while(1)
+	{																						{
+		item = produce_next_item()							
+																								item = remove_from_buffer()
+		add_to_buffer(item);
+																								consume(item);
+	}																						}
+
+
+
+							/* shared/global memory */
+							int n = 8;
+							buffer[n];
+							semaphore empty_slots = n;
+							semaphore used_slots = 0;
+
+	/* producer */															/* consumer */
+	while(1)																		while(1)
+	{																						{
+		item = produce_next_item();									P(used_slots);
+		P(empty_slots);															item = remove_from_buffer();
+		add_to_buffer(item);												V(empty_slots);
+		V(used_slots);															consume(item);
+	}																						}
+
+	THe above solution uses two counting semaphores to ensure:
+	(1) no buffer overflow will occur in a producer
+	(2) no reading from an empty buffer in the consumer
+
+
+
+							/* shared/global memory */
+							int n = 8;
+							buffer[n];
+							semaphore empty_slots = n;
+							semaphore used_slots = 0;
+							semaphore mutex = 1;
+
+
+	/* producer */															/* consumer */
+	while(1)																		while(1)
+	{																						{
+		item = produce_next_item();									P(used_slots);
+		P(empty_slots);															P(mutex);
+			P(mutex);																		item = remove_from_buffer();
+				add_to_buffer(item);												V(mutex);
+			V(mutex);																		V(empty_slots);
+		V(used_slots);															consume(item);
+	}																						}
+
+	TO DO: parallelize the above solution further such that reads/writes
+						can occure simultaneously in different slots of the array
+	
+				 P() is a blocking operation
+
+#######################################################################################
+
+Another related/similar example:
+
+The READERS/WRITERS PROBLEM:
+
+-- shared resource is an array, e.g., seating chart of a flight or a concert
+		or a Data Structures exam
+
+-- One or more readers that can be reading simultaneously
+
+-- One or more writers that actually reserve a seat
+	 -- When a writer wants to write, no other writers can be writing...
+	 -- When a writer wants to write, no readers can be reading...
+
+
+#######################################################################################
+
+DINING PHILOSOPHERS PROBLEM
+
+GIVEN: five philosophers that engage in only two activities:
+			 -- thinking (i.e., independent computation)
+			 -- eating (i.e., sharing a resource; therefore, requires synchronization)
+
+	philosopher(i) /* i in 0..4 */
+	{
+		while(1)
+		{
+			think()
+			eat()
+		}
+	}
+
+Given: shared table with five bowls and five chopsticks,
+				and a bowl of food in the middle of the table
+					(which is endlessly replenished)
+
+Key constraint: to eat(), a philosopher must obtain two chopsticks,
+									one from left, one from the right
+
+Goal: Design a solution by which you can guarantee that each
+				philosopher eats; in order to eat, two chopsticks must
+					be in hand
+
+			No two philosophers can hold the same chopstick simultaneously
+
+			Avoid deadlock
+
+			No individual starvation
+
+			Fairness, efficiency, etc.
+
+Deadlock: we have deadlock when no process/thread can make any
+						further progress (i.e., all blocked on P() operation
+							and the given resource will NEVER become available)
+	
+First attempt:
+
+	chopstick is array[5] of semaphores
+	
+	philosopher(i) /* i in 0..4 */
+	{
+		while(1)
+		{
+			think()
+			P(chopstick[i])
+				P(chopstick[(i+1)%5])
+					eat()										/* critical section */
+				V(chopstick[(i+1)%5])
+			V(chopstick[i])
+		}
+	}
+
+Deadlock can occure if the first P() operation is successfully
+	executed by each philosopher, followed immediately by a context switch
+	-- no philosopher gets to their second P() operation
+	-- therefore also no philosopher gets to their V() operations
+
+A solution to this deadlock problem:
+-- we could simply use a top-level mutex to avoid deadlock
+	 -- note efficient...
+
+Second attempt:
+
+
+	chopstick is array[5] of semaphores
+	
+	philosopher(i) /* i in 0..4 */
+	{
+		while(1)
+		{
+			think()
+			P(mutex)
+				P(chopstick[i])
+				P(chopstick[(i+1)%5])
+			V(mutex)
+			eat()										/* critical section */
+			V(chopstick[(i+1)%5])
+			V(chopstick[i])
+		}
+	}
+
+	TO DO: convince yourself that the above solution "works" meaning
+					that it avoids deadlock and is "fair" (or doesn't work)
+
+Third attempt:
+
+	-- use an asymetric solution
+
+	chopstick is array[5] of semaphores
+	
+	philosopher(i) /* i in 0..3 (instead of i in 0..4) */
+	{
+		while(1)
+		{
+			think()
+			P(chopstick[i])
+				P(chopstick[(i+1)%5])
+					eat()										/* critical section */
+				V(chopstick[(i+1)%5])
+			V(chopstick[i])
+		}
+	}
+
+
+	philosopher(i) /* i is always 5 */
+	{
+		while(1)
+		{
+			think()
+			P(chopstick[(i+1)%5])							/* we swapped the order of the P() operations */
+				P(chopstick[i])
+					eat()										/* critical section */
+				V(chopstick[(i+1)%5])
+			V(chopstick[i])
+		}
+	}
+
+
+#######################################################################################
+
+DEADLOCK
+
+Deadlock: we have deadlock when no process/thread can make any
+						further progress (i.e. all blocked on P() operation
+							and the given resource will NEVER become available)
+
+A system enters a deadlock state when multiple processes/threads
+	are unable to obtain a lock on a ll necessary resources
+
+	...and therefore are unable to make any progress in their execution
+
+After acquiring a resource, a process/thread holds onto the resource
+	indefinitely (i.e., "hold and wait")
+
+
+													semaphore S, Q
+
+		// process 1																	// process 2
+		...																						...
+		P(S) [succeeds]																P(Q) [succeeds]
+		P(Q) [block indef.]														P(S) [block indef.]
+		...																						...
+		V(Q)																					V(S)
+		V(S)																					V(Q)
+		...																						...
+
+Deadlock requires four conditions:
+-- mutual exclusion
+-- hold and wait
+-- no preemption
+-- circular wait -- i.e., a cycle in resource allocation graph
+
+TO DO: does deadlock2.png portray a system that deadlocked?
+
+Handling deadlocks:
+-- Allow the system to enter a deadlock state, then recover:
+	 -- terminating one ore more of the deadlocked processes/threads
+	 		(i.e., remove a vertex from the graph)
+	 -- rolling back one or more of the deadlocked processes/threads
+	 		to a safe checkpointed state (i.e., remove an edge from the graph)
+
+-- Another approach is to guarantee that the system will never
+		enter a deadlock state:
+
+		-- preventing deadlock ensures that at lead one of the four conditions
+				is never met
+		-- deadlock avoidance allows a system to change state by
+				allocating resources only when it is certain that
+					deadlock will not occure as a result

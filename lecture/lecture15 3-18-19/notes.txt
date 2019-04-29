@@ -1,0 +1,191 @@
++------------+
+| Lecture 15 |
++------------+
+
+Synchronization:
+(1) data synchronization
+(2) process/thread synchronization -- sequence of events
+
+
+Multiple threads
+-- in ONE process, we can have multiple threads of execution
+
+
+The purpose behind joining threads back in the parent thread:
+-- we might want to return one or more values back from the child
+		t0 the parent
+-- we might want to ensure a specific sequence of events
+
+Difficult to detect errors in Synchronization because they only occur rarely
+
+Synchronization and Mutual Exclusion
+
+		/* Process of Thread */
+		while(1)
+		{
+			execNonCriticalSection();
+			execCriticalSection();
+		}
+
+		/* Process P2 or Thread T2 */
+		while(1)
+		{
+			execNonCriticalSection();
+			execCriticalSection();
+		}
+
+		/* Process P3 or Thread T3 */
+		while(1)
+		{
+			execNonCriticalSection();
+			execCriticalSection();
+		}
+
+
+											/* global or shared memory */
+											int x = 5;
+											int lock = 0;
+
+		/* Thread T1 */																					/* Thread T2 */
+		while(1)																								while(1)
+		{																												{
+			execNonCriticalSection();																execNonCriticalSection();
+			while(lock == 1)																				while(lock == 1)
+			{																												{
+				/* busy wait */																					/* busy wait */
+			}																												}
+	--<context-switch>--
+			lock = 1;																								lock = 1;
+			execCriticalSection();																	execCriticalSection();
+			lock = 0;																								lock = 0;
+		}																												}
+
+In the above solution, if a context switch occurs where shown,
+	then both T1 and T2 can be in their critical section at the same
+		time (which is bad)
+
+
+################# Correct Locking ###########################
+											
+	Dekker's alogrithm - No you go first :)
+											
+											
+											/* global or shared memory */
+											int x = 5;
+											int needLockT1 = 0; /* 0 or 1 */
+											int needLockT2 = 0; /* 0 or 1 */
+											int turn = T1; 			/* T1 or T2 */
+
+		/* Thread T1 */																					/* Thread T2 */
+		while(1)																								while(1)
+		{																												{
+			execNonCriticalSection();																execNonCriticalSection();
+			needLockT1 = 1;																					needLockT2 = 0;
+			turn = T2;																							turn = T1;
+
+			while(turn == T2 && needLockT2 = 1)											while(turn == T1 && needLockT1 == 1)
+			{																												{
+				/* busy wait */																					/* busy wait */
+			}																												}
+
+			execCriticalSection();																	execCriticalSection();
+			needLockT1 = 0;																					needLockT2 = 0;
+		}																												}
+
+	
+T1: needLockT1 = 1;
+T1: turn = T2;
+T2: needLockT2 = 1;
+T2: turn = T1;
+T1: execCriticalSection();
+T1: needLockT1 = 0;
+T2: execCriticalSection();
+
+TO DO: verify (convince yourself) that the above pseudocode will
+						guarantee that only one thread is in its critical section
+							at any given time
+
+TO DO: extend this to an n-thread solution
+
+
+SEMAPHORE:
+
+-- an OS contruct that enables us to have synchronized access
+		to one or more shared resources
+
+-- special non-negative int variable
+
+-- two operations:
+
+	 (1) first operation essentially attempts to gain access
+
+	 		 P()			proberen (to try)
+			 wait()
+			 down()
+
+	 (2) second operation relinquishes the access the acquired
+
+	 		 V()			vrijgeven (to release)
+			 signal()
+			 up()
+	
+
+	 semaphore S is non-nagative int variable
+
+	 P(semaphore S)						/* this P() operation MUST execute without 		*/
+	 {												/*  any interruption, i.e., no context switch */
+	 	while(S == 0)						/*   between existing the while() loop and 		*/
+		{												/*    executing S--														*/
+			/* busy wait */
+		}
+	 	S--;
+	 }
+
+	V(semaphore S)
+	{
+		S++;
+	}
+
+-- example of a BINARY SEMAPHORE, which guarantees mutual exclusion
+
+	 /* initialize the semaphore to 1 since there is 
+	 			exactly one resource/lock */
+	
+	 semaphore mutex = 1;
+
+	 /* each thread executes the code below: */
+	 ...
+	 P( mutex ); /* mutex can be any group of numbers */
+	 	executeCriticalSection();
+	 V( mutex );
+	 ...
+
+-- a COUNTING (or GENERAL) SEMAPHORE controls access to a finite number
+		of resources
+
+
+		-- initialize the semaphore to n, where n is the number of
+				resources to be shared/synchronized
+
+				semaphore n = 20;
+
+		-- again, we use the P() and V() operations;
+
+		-- possible values of the semaphore are 0, 1, 2, ..., n
+
+######################## Quiz/Homework 3 prep ############################
+
+pthread
+
+	keep track of thread IDs to join back in
+
+	pthread_create(copy _file)
+
+	pthread_join() wait for thread to finish
+
+	pthread_exit(value)
+
+
+Signals to create an alarm
+
+	you can use fork and multithreading

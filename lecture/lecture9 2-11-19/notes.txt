@@ -1,0 +1,15 @@
++-----------+
+| Lecture 9 |
++-----------+
+
+#### Homework 2 ####
+
+How to get rid of dynamic memory in child process
+
+-- Valgrind shows both processes (PARENT, CHILD)
+-- free() in both parent and child
+-- use exit() in child process
+
+####################
+
+

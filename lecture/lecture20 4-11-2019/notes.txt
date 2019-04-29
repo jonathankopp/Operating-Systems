@@ -1,0 +1,252 @@
++------------+
+| Lecture 20 |
++------------+
+
+Homework 4 spec
+
+use select() to have TCP and UDP on same port
+
+<main thread>
+while(1)
+{
+	use select() to monitor both the TCP listener and the UDP listener
+
+	when select() returns, we might do accept() for TCP
+		and/or we might do recvfrom() UDP
+
+	if TCP, create a child thread to handle that accepted connection...
+
+	if UDP, do NOT create a thread, but just handle the request here
+		in the main loop of the main thread
+}
+
+Use pthread_detach() when done with a child thread
+
+=============================================================================
+
+Memory Management
+
+NON-CONTIGUOUS MEMORY ALLOCATION
+
+-- we avoid the need to defragment memory by using a non-contiguous approach
+		:-)
+
+-- Given process P, we slice up the process into N equally sized PAGES
+		(where the last page might not use the entire page of logical memory)
+
+-- Next, we allocate each PAGE to a FRAME of physical memory
+		(i.e., frame size == page size)
+
+-- But.......we do need a way to map a logical address to a physical address
+
+		-- we implement this mapping using a PAGE TABLE --- overhead.... :-(
+
+e.g., a 16-bit memory address with the high-order 4 its representing
+				the page number
+
+	logical address:			011011001100111    <== binary 16-bit adress
+														
+														|
+	logical address:			0110|110011001111  <== binary 16-bit address
+												^		|			^
+												|					|
+												|					|
+											page			page
+										 number		 offset
+
+					...do the lookup in the page table for page 0110 (6)
+							which for this process maps to (say frame 1101 (13)
+
+										 frame			frame
+										number		 offset
+												|					|
+												|					|
+												v	|				v
+	physical address:   1101|110011001111 <== binary 16-bit address
+													|
+
+	At most, how many pages are there per process?
+
+		 4
+		2  ==> 16 pages per process (at most)
+
+	what is the page size (and therefore frame size) in bytes?
+
+		 12
+	  2		==> 4096 bytes
+
+	Invariant:   page size == frame size
+
+PRINCIPLE OF LOCALITY
+
+-- Much more often than not, when we're accessing memory on a given page P, the next memory address
+		that we're going to access is also on page P
+
+-- Through the use of Translation Lookaside Buffer (TLB),
+		as long as we achieve a high enough TLB hit ratio, we can
+			significantly reduce the overhead of the page table lookups
+
+e.g., each physical memory access requires 100ns (i.e., page lookup)
+			 and each TLB memory access requires 20ns (i.e., TLB lookup)
+
+-- Memory access without the use of a TLB:
+		(1) page table memroy access (100ns) plus
+		(2) requested memory access (100ns)
+		==> each memory access is therefore 200ns
+
+-- Memory access with the use of TLB
+		(1) TLB memory access/lookup (20ns):
+				(2a) TLB cache miss --> page table memory access (100ns) plus
+																requested memory access (100ns)
+																cache the page-to-frame mapping to the cache
+				(2b) TLB cache hit  --> requested memory access (100ns)
+
+Effective Memory Access Time (EMAT)
+e.g., given a TLB hit ratio of 96%
+
+		EMAT = 0.04 * 220   +    0.96 * 120  =  124ns
+					 ^^^^^^^^^^        ^^^^^^^^^^
+					 cache miss				 cache hit
+
+TO DO: explore with different hit ration values: 50%; 75%; 99%; 80%; etc.
+
+(Internal fragmentation occurs in the last frame of physical memory
+	allocated to a process)
+
+How we determin the page size to use?
+-- the smaller the page size, the less internal fragmentation
+-- best case, internal fragmentation is zero
+-- worst case, internal fragmentation is K-1, where K is the page size
+
+-- the smaller the page size, the larger number of pages required
+		and therefore a larger page table is required
+		 -- and therefore less advantage gained from the principle of locality
+		 			and using a TLB
+
+VIRTUAL MEMORY
+
+-- Not all pages of a process are needed during program execution
+-- Only a few pages of a process are needed in physical memory
+		at any given time
+
+-- Virtual address space essentially resides on disk
+
+-- a PAGE FAULT results from a memory access that requires a page
+		that is not already in physical memory (and therefore needs to be read
+			from disk, i.e., swap the page in from disk)
+
+PRINCIPLE OF LOCALITY
+
+-- Much more often than not, when we are accessing memory on given page X,
+		the next memory access(es) are very likely to also be on page X
+
+-- with non-contiguous memory allocation, through the use of the TLB 
+		as long as we have a high enough TLB hit ration, we can significantly
+			reduce the overhead of using a page table
+
+VIRTUAL MEMORY POLICIES
+
+-- The FETCH policy governs when a page should be loaded into physical
+		memory from disk (e.g., demand paging, demand paging with pre-paging
+			that loads some of the adjacent pages into physical memory)
+
+-- The PLACEMENT policy specifies where a page is loaded into physical
+		memory (i.e., page table)
+
+-- The REPLACEMENT policy determines which existing page of a process
+		(already in physical memory) should be replaced when we swap in
+			another page from disk
+
+Page Allocation:
+-- In a STATIC ALLOCATION scheme, the number of frames allocated per
+		process is fixed/static (e.g., process A is allocated 3 frames,
+			process B is allocated 5 frames, etc.)
+-- In a DYNAMIC ALLOCATION scheme, the number of frames allocated per
+		process can vary (based on some criteria for each process)
+
+-- In an EQUAL ALLOCATION scheme, all processes have an equal number
+			of frames allocated (e.g., each process gets exactly 6 frames)
+-- In a PROPORTIONAL ALLOCATION scheme, processes are allocated frames
+		in proportion to process size, priority, behavior (page use), etc.
+
+THRASHING
+-- A process is in a state of THRASHING if it is spending more time
+		paging/swapping than executing
+
+		-- as this paging/swapping occurs, the given process is 
+				suspended from its execution
+
+Page REPLACEMENT Policy:
+-- Algorithm for identifying which page (already in phsyical memory)
+		for a given process will be replaced by the newly requested page
+			(i.e., the page access that cause the page fault)
+-- Goal is to reduce/minimize the number of page faults
+-- Goal is also to identify the LOCALITY of the given process
+		at any given time
+
+
+e.g., page reference stream
+
+			1 2 3 2 1 1 3 4 4 2 4 5 7 2 2 8 3 2 2 1 1 ............................
+
+			given a 3-frame static allocation scheme for this process
+
+FIFO (first-in-first-out)
+
+    		1 2 3 2 1 1 3 4 4 2 4 5 7 2 2 8 3 2 2 1 1
+		----------------------------------------------
+		 -  1 1 1 1 1 1 1 4 4 4 4 4 4 2 2 2 2 2 2 1 1
+		 -  . 2 2 2 2 2 2 2 2 2 2 5 5 5 5 8 8 8 8 8 8
+		 -  . . 3 3 3 3 3 3 3 3 3 3 7 7 7 7 3 3 3 3 3
+		----------------------------------------------
+		    p p p         p       p p p   p p     p  <===== page faults (10)
+
+TO DO: repeat this with a 4-frame memory, 5-frame memory, etc.
+
+
+LRU (least-recently used)
+
+    		1 2 3 2 1 1 3 4 4 2 4 5 7 2 2 8 3 2 2 1 1
+		----------------------------------------------
+		 -  1 1 1 1 1 1 1 1 1 2 2 2 7 7 7 7 3 3 3 3 3
+		 -  . 2 2 2 2 2 2 4 4 4 4 4 4 2 2 2 2 2 2 2 2
+		 -  . . 3 3 3 3 3 3 3 3 3 5 5 5 5 8 8 8 8 1 1
+		----------------------------------------------
+		    p p p         p       p p p   p p     p  <===== page faults (10)
+
+TO DO: repeat this with a 4-frame memory, 5-frame memory, etc.
+
+
+
+LFU (least-frequently used)
+
+    		1 2 3 2 1 1 3 4 4 2 4 5 7 2 2 8 3 2 2 1 1
+		----------------------------------------------
+		 -  1 1 1 1 1 1 1 1
+		 -  . 2 2 2 2 2 2 4 <-- 2 was used less times than 1 or 3
+		 -  . . 3 3 3 3 3 3
+		----------------------------------------------
+		    p p p         p       p p p   p p     p  <===== page faults (10)
+
+
+		Disadvantage of LFU:
+		-- addition overhead
+		-- pages tah stick around long enough tend to have artificially
+				high frequency/access count, but new pages always start at 1
+
+TO DO: repeat this with a 4-frame memory, 5-frame memory, etc.
+
+LRU is the "tie-breaker" algorithm for LFU
+
+
+OPT (optimal) -- i.e., look forawrd in time...
+
+    		1 2 3 2 1 1 3 4 4 2 4 5 7 2 2 8 3 2 2 1 1
+		----------------------------------------------
+		 -  1 1 1 1 1 1 1-4 4 4 4-5-7 7 7-8 8 8 8 
+		 -  . 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2-1 1
+		 -  . . 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
+		----------------------------------------------
+		    p p p         p       p p p   p p     p  <===== page faults (10)
+
+TO DO: repeat this with a 4-frame memory, 5-frame memory, etc.

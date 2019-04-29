@@ -1,0 +1,63 @@
++-----------+
+| Lecture 6 |
++-----------+
+
+#### QUIZ 1 REVIEW ####
+
+	Question 1
+
+		float *f;
+		*f = 1.24; <-- Seg fault trying to dereference pointer (No output)
+
+
+	Question 2
+
+		Memory is allocated on the runtime heap
+			**Memory allocation is relative to the process.
+					A fork will create a realtive offset essentially creating its own memory addresses
+						relative to it**
+
+	Question 3
+
+		Fork creates a new process as a copy of the original process
+			**Memory needs to be freed in both processes if it's called**
+
+	Question 4
+
+		sizeof( char * ) = 8 bytes!!!!
+		
+		stderr prints ASAP (before regular printf)
+
+		Output:
+			Hi Eric
+			8EEEEE
+
+
+#### Inter-Process Communication (IPC) ####
+
+Requirements for IPC:
+-- synchronization
+-- protocol
+
+Types of IPC:
+-- files (a process writes to a file; another process reads the file)
+		-- Slow
+		-- Unreliable (when is all the data in the file 100 bytes? 200 bytes?)
+-- pipe (a unidirectional communication channel)
+-- message queues
+-- socket-based communication (network programming)
+-- exit status (from a terminating child process to a parent process)
+
+From "man 3 exit"
+
+The exit() function cuases normal process termination and the value of
+			status & 0377 is returned to the parent (see wait(2)).
+						   ^^^^
+							 leading 0 indicates this is an octal value (111111111 binary)
+
+**** Unidirectional on the descriptor
+			Can read/write at the same time but cannot read/write on the same descriptor ****
+
+-- Once a buffer is read that data cannot be read again from the buffer
+
+-- Buffer does have a max size (write() will fail eventually if data not read fast enough)

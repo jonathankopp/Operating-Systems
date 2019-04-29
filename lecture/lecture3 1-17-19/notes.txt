@@ -1,0 +1,56 @@
++-----------+
+| Lecture 3 |
++-----------+
+
+#### String.h ####
+
+- Strings are in read only memory
+- It is not in the stack or the heap it is actually part of the code
+
+
+#### Array Facts ####
+
+char a[0] = "ABCD"; /* char a[0] = {'A', 'B', 'C', 'D', '\0'}; */
+char b[4] = "ABCD"; /* char b[4] = {'A', 'B', 'C', 'D'}; */
+
+#### File Descriptor (fd) ####
+
+- Each process has a file descriptor table associated with it
+-- Keeps track of its open files (i.e., byte streams)
+
+fd				c++			Java					C
+0 stdin   cin     System.in     scanf(), read(), getchar(), ...
+1 stdout  cout    System.out    printf(), write(), putchar(), ...
+2 stderr  cerr    System.err    fprintf(stderr, "ERROR:....\n");
+																perror("open() failed");
+
+- stdout and stderr (by default) are both displayed on the terminal
+
+- stdout is line-buffered when output to the terminal
+- stdout is block-buffered when output is redirected to an output file
+- stderr (fd 2) is unbuffered
+
+
+Before Open
+
+fd table:
+ 0 stdin
+ 1 stdout
+ 2 stderr
+
+After Open
+
+fd table:
+ 0 stdin
+ 1 stdout
+ 2 stderr
+ 3 testfile.txt (O_RDONLY)
+
+After Close
+
+ fd table:
+  0 <NULL>
+	1 stdout
+	2 stderr
+
+DUP2 ==> duplicates a file indicator to make them interchangeable

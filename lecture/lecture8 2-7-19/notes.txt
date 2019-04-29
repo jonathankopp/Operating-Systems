@@ -1,0 +1,9 @@
++-----------+
+| Lecture 8 |
++-----------+
+
+There is no undo for dup2() so save something in a larger fd to be called back later
+
+
+See Lecture 7 cpu scheduling
+

@@ -1,0 +1,109 @@
++------------+
+| Lecture 17 |
++------------+
+
+#### Network Programming ####
+
+Inter-Process Communication (IPC)
+-- Synchronization
+-- Protocol -- how is communication going to take place
+								(what should happen when errors occur?)
+
+Open Systems Interconnection (OSI) Reference Model
+
+-- The ISO proposal for the standardization of various protocols
+		in computer networks
+
+-- a seven-layer protocol stack:
+
+	CLIENT																					SERVER
+---------------																	------------------
+	Application	(e.g., HTTP) <====================>	Application
+	(Presentation)																	(Presentation)
+	(Session)																				(Session)
+	Transport	(e.g., TCP, UDP) <==================>	Transport
+	Network	(e.g., IP) <==========================>	Network
+	(Data Link)																			(Data Link)
+	Physical (e.g., Ethernet) <===================>	Physical
+
+
+	CLIENT																					SERVER
+---------------																	------------------
+	Application	(e.g., HTTP) <====================>	Application
+	Transport	(e.g., TCP, UDP) <==================>	Transport
+	Network	(e.g., IP) <==========================>	Network
+	Physical (e.g., Ethernet) <===================>	Physical
+
+
+##########################################################################
+
+TCP VS. UDP
+
+Transmission Control Protocol (TCP)
+-- Connection-oriented
+-- Reliable protocol (re-send missing packets; sequencing; error checking)
+-- Overhead
+
+User Datagram Protocol (UDP)
+-- Connection-less
+-- Unreliable protocol (no re-sending missing/dropped datagrams)
+-- Low overhead
+
+Sockets-based communication
+
+-- a SOCKET is an endpoint for communication
+									^^^^^^^^
+-- sockets-based communication can be connection-oriented or connection-less
+
+-- a SERVER creates one (or more) sockets that it will then LISTEN on for 
+		incoming client connection requests (TCP) or incoming datagrams (UDP)
+
+		-- The server listends on (or more) speicific PORT numbers (2-byte short)
+
+		-- well-known port numbers include:
+
+			 21 FTP
+			 22 SSH
+			 23 TELNET (not used bc we should use 22 for SSH instead)
+			 25 SMTP (Simple Mail Transfer Protocol)
+			 80 HTTP
+			443 HTTPS
+
+UDP SERVER example (udp-server.c)
+
+-- socket()												create a socket (endpoint) for communication
+
+-- bind()													bind to (assign) a specific port number
+																		(or let the OS assign us a port number)
+
+-- getsockname()									get socket "name" -- IP address, port number, etc.
+
+-- recvfrom()/sendto()						receive/send datagrams
+
+
+Internet Protocol (IP)
+-- IP provides host-to-host delivery service of datagrams
+-- IP is connectionless
+-- IP is unreliable (i.e., no re-sending of missing/dropped datagrams)
+
+IP Adresses
+-- IP address are #######SEE NOTES ##############
+
+What does the following mean?
+
+	04/01/2010		==> April 1, 2010										===> YYYY-MM-DD (2010-04-01)
+								==> January 4, 2010
+	
+	int data types is 4 bytes -- big endian vs. little endian
+
+htons() -- host-to-network-short
+htonl() 
+ntohs()
+ntohl()
+
+
+Inter-Process Communication (IPC)
+-- Synchronization
+-- Protocol -- how is communication going to take place
+								(what should happen when errors occur?)
+-- Data marshalling

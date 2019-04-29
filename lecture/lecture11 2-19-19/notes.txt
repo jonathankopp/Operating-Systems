@@ -1,0 +1,91 @@
++------------+
+| Lecture 11 |
++------------+
+
+#### Project 1 Specifications ####
+-- Register Team
+-- Any language
+-- Simulation
+
+
+#### Exam 1 Review ####
+
+-- Watch what comes after fork but before the if statements (it'll print double)
+		-- Draw it out
+
+
+Q1.						ONE
+						/			\
+					p/			 \c
+					/				  \
+			<parent>		<child>
+				TWO					TWO
+				FOUR				THREE
+
+	
+	Output lines in <parent> and <child> sections will interleave with one another
+
+Q2,				PARENT: x is 150
+					PARENT: forking...
+				 /									\
+				/									   \
+			 /									    \
+		<parent>								<child>
+		PARENT: forked...				PARENT: forked...
+					|									CHILD: happy birthday
+					|									CHILD: 300
+					|
+				<wait>
+					|
+					v
+		PARENT: child completed
+		PARENT: 300
+
+		Output lines in <parent> and <child> sections
+			will interleave with one another
+
+Q3.		a--> "POLYTECHNIC" (This is read only, if you try and change it'll seg fault)
+						^
+						|
+			b------
+
+			c--> "\0\0\0\0\0\0\0\0\0..." (100 bytes) '\0' = NULL
+			
+					+---+
+			d-->|   |
+					+---+
+					|   |
+					+---+
+					|   |
+					+---+				c
+					 ...				|
+					+---+				v
+			[6]	| ======> "TECHNIC\0\0\0\0\0\0\0..." (100 bytes)
+					+---+			+----------------------+
+			[7]	| ======> |	ECHNIC\0						 |
+					+---+			+----------------------+
+					 ...
+					+---+
+					|   |
+					+---+
+
+		free(c);
+		free(d[7]);
+		free(d);
+		free(f);
+
+		If we use malloc instead (memory won't be zero'd out)
+	OUTPUT:
+			[C][IC][]
+			[ECHNIC][TECHNIC][IC]
+			[0.00][[0.00][2.7]
+
+Q7.  128 3 4
+		/       \
+	 /         \
+  /           \
+<parent>		 <child>
+read(8)				write(ABCDEFGHIJKLMNOPQRSTUVWXYZ)
+
+***LOOK AT THIS ONE***
+

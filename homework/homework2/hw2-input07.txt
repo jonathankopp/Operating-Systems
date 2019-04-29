@@ -1,0 +1,6 @@
+cd /
+pwd
+cd home/shayne
+pwd
+ls -o -h -Q
+exit

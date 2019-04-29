@@ -1,0 +1,31 @@
++-----------+
+| Lecture 5 |
++-----------+
+
+pid_t child_pid = waitpid(pid, &status, 0); /* block indefinetly */
+
+pid_t child_pid = waitpid(-1, &status, 0); /* block any child process created by this specific parent indefinetly */
+
+pid_t child_pid = waitpid(-1, &status, WNOHANG); /* Checks if child process is finished if not continue */
+
+
+What happens when a child process terminates?
+-- the child process becomes a defunct/zombie process,
+		i.e., the process is no longer running, but the process
+			still has data associated with it (e.g., exit status,
+				how the process was terminated, etc.) in the process
+					table that the OS manages
+
+-- a signal (SIGCHILD) is sent to the parent process, though
+		by default, this signal is ignored (man 7 signal)
+-- the zombie will remain until the parent process calls
+		wait() or waitpid()
+		-- or if the parent process terminates before the
+			child process terminates, then the child process
+				gets inherited by a top-level process (pid 1)
+
+What happens if the parent process does not call wait() or
+	waitpid() for a child process?
+-- the zombies can fill up the process table....
+
+exec() /* Execute a command */

@@ -1,0 +1,89 @@
++-----------+
+| Lecture 2 |
++-----------+
+
+######## Homework 1 Help ##########
+
+		change to cache strings instead?
+			- Array of character (or struct) pointers (char*)
+			- Use NULL instead of -1
+
+				   +-----+
+chache: [0]|   -1|
+					 +-----+
+				[1]|   -1|
+				   +-----+
+			  [2]|    6|	3 ==> 6 		50 ==> sum(1..50)
+				   +-----+
+				...|     |
+			     +-----+
+			 [46]|   -1|
+			     +-----+
+
+	char * cache [];
+	char ** cache; /* Array of char* */
+
+	/* Dynamically allocate an array of 47 char* elements */
+	cache = calloc(47, sizeof(char *) ); /* 47x8 bytes allocated */
+
+	if ( cache == NULL )
+	{
+		fprintf(stderr, "ERROR: calloc() failed.\n");
+		return EXIT_FAILURE;
+	}
+
+	/* Dynamically allocate memory to hold the string "ABCD" */
+	char input[100] = "ABCD";
+	cache[3] = calloc(strlen(input) + 1, sizeof( char ) );
+									  ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^
+										5 chars to allocate  1 byte
+	
+	strcpy(cache[3], input); /*relies on \0 to stop so does strlen(); */
+
+
+					 +-----+
+chache: [0]| NULL|
+					 +-----+
+				[1]| NULL|
+				   +-----+
+			  [2]| NULL|	
+				   +-----+       +----------+
+				[3]| ==========> | "ABCD\0" |
+				   +-----+       +----------+
+				...|     |
+			     +-----+
+			 [46]| NULL|
+			     +-----+
+
+	free(cache); /* free up array but not elements within */
+
+
+######## Notes ##########
+
++---------------+
+| Good Practice |
++---------------+
+
+-	Use Dynamically allocated memory > Statically allocated whenever possible
+- Loop through arrays freeing every element and then free array
+
++----------+
+| Pointers |
++----------+
+
+------------------
+C++ code:
+
+int square(int & x)  //& ==> pass by reference +-----+
+{										 //x references y in main: |     |
+	return x * x;      //                        +--|--+
+}										 //													  |
+										 //														|
+int main()					 //														V
+{						 //																+----+
+	int y = 4; //4 bytes alocated on the stack: |   4|
+						 //																+----+
+	return square(y);
+}										 //Pass by reference is not useful in small structures takes 8 bytes
+-------------------
+

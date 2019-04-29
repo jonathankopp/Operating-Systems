@@ -1,0 +1,121 @@
++------------+
+| Lecture 12 |
++------------+
+
+For homework 2 using pipes
+
+		Parent
+			|
+	first fork
+		/		\
+	 /		 \
+1st child \
+					parent
+					waitpid(1st child)
+							|
+					Second Fork
+						/   \
+					 /     \
+			2nd child   \
+									parent
+									waitpid(2nd child)
+
+===========================================
+
+Shared Memory Key - This constant defines the shared memory
+											segment that multiple processes can use to attach
+												to a shared memory segment
+
+#define SHM_SHARED_KEY 8192
+
+in main:
+	ket_t key = SHM_SHARED_KEY;
+	int shmid = shmget(key, 1024, IPC_CREAT | 0660);
+													 ^
+													Size
+	if(shmid == -1)
+	{
+		perror("shmget() failed");
+		return EXIT_FAILURE:
+	}
+
+	char * data = shmat(shmid, NULL, 0);
+
+	if(data == -1)
+	{
+		perror("shmat() failed");
+		return EXIT_FAILURE;
+	}
+
+	strcpy(data, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+				 ^^^^
+				 this points to the shared memory
+
+	
+detach:
+	int rc = shmdt(data);
+
+	if(rc == -1)
+	{
+		perror("shmdt() failed");
+		exit(EXIT_FAILURE);
+	}
+
+	if(shmctl(shmid, IPC_RMID, 0) == -1)
+	{
+		perror("shmctl() failed");
+		exit(EXIT_FAILURE);
+	}
+
+===========================================
+
+SYNCHRONIZATION
+
+-- synchronization problems are inherent to parrel programming
+		(i.e., multiple processes via fork() using shared memory
+			or shared resources, multiple threads, etc.)
+
+
+															SHARED MEMORY
+														 +-------------+
+														 | shared x    | <== initially x = 5 
+														 +-------------+
+
+	Process P1																								Process P2
++------------+                                            +------------+
+|            |                                            |            |
+| local y    |                                            |            |
+|        	   |                                            | local z    |
+|            |                                            |            |
+|------------|                                            |------------| At <point A> and <point B>
+> x += 4     <                                            > x++        < what is x? what is the output?
+> y = x      <                                            > z = x      <
+|------------|                                            |------------| wat is x? 6, 9, or 10
+|            |                                            |            |
+| print x    |                                            | print x    |
+| print y    |                                            | print z    |
+|            |                                            |            |
+|            |                                            |            |
+|            |                                            |            |
+| <point A>  |                                            | <point B>  |
++------------+                                            +------------+
+
+	The highlighted CRITICAL SECTIONS shown above
+
+	-- to synchronize these two processes, only one (and no more than one)
+		 process can be in its critical section at any given time
+
+P1:
+		x += 4	===========================> x = x + 4
+
+																				 LOAD X			; load the value of x into a register
+																				 ADD #4			; add 4 to that register
+																	<---- context-switch ---->
+																				 STORE x		; store the new value vack in x
+
+P2:
+		x++   	===========================> x = x + 1
+
+																				 LOAD X			; load the value of x into a register
+																				 INCR 			; add 1 to that register
+																				 STORE x		; store the new value vack in x

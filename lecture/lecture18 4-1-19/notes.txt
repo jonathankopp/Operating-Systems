@@ -1,0 +1,111 @@
++------------+
+| Lecture 18 |
++------------+
+
+
+Exam 2 Review Questions
+
+1.
+	pthread_create - make a new thread
+	pthread_detach - return the thread so memory can be used somewhere else (will not join)
+	pthread_self - get thread id
+	pthread_join - wait for thread to join back (the equivalent of wait for fork())
+	pthread_exit - return value of thread to join
+
+2.
+	Problems
+	- read/write at the same time
+	- updating not all values update
+	- lower level not all values returned
+
+	Solutions
+	- define critical sections
+
+3.
+	Only one thread can be in its critical section (area that is manipulating/reading shared memory)
+
+4.
+	mutual exclusion
+	hold and wait
+	no preemption
+	circular wait
+
+5.
+	V() add 1 to semaphore to make resource available
+	p() block in while loop for resource to become available
+
+	P(semaphore S)
+	{
+		while(S == 0)					/* TEST-AND-SET */
+		{
+			/* busy wait */
+		}
+		S--;
+	}
+	
+	V(semaphore S)
+	{
+		S++;
+	}
+
+
+...
+
+
+8.
+	shmget
+	shmat
+
+9.
+	Application (e.g., HTTP)
+	(Presentation)
+	(Session)
+	Transport (e.g., TCP, UDP)
+	Network (e.g., IP)
+	(Data Link)
+
+10.
+	Data marshalling is setting a standard for data for protocols so mixed information isn't received
+
+11.
+	TCP - connection, slower, reliable packets
+	UDP - connectionless, faster, not reliable
+
+12.
+	IP is the address of a machine
+	subnet mask - which address are available in a network
+
+13.
+	socket() - connection between a client/server
+	bind() - bind to self or an address
+	recvfrom() - receive from address
+	sendto() - send to address
+	listen() - listen for connection on port
+	connect() - connect to address/port
+	
+	gethostbyname() - 
+	
+	send() - send data to socket
+	recv() - wait for data from socket
+
+14.
+	since you close stdin, stdout printf will write to pipe
+
+	READYORNOTE!
+	[something gets printed here]
+
+	if you don't close the pipes then the printf will just go to stdout
+
+15.
+	shmget will get id from key
+	shmat will attach id to piece of data to be shared
+
+...
+
+17.
+	variable q is critical section
+	
+	write out three lines and then say these threads interleave
+
+18.
+

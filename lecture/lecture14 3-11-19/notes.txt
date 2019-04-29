@@ -1,0 +1,10 @@
++------------+
+| Lecture 14 |
++------------+
+
+
+Homework 3 will be a multithreaded C programming assignment
+
+####################################
+
+Go to SYNCHRONIZATION notes

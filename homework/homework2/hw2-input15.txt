@@ -1,0 +1,6 @@
+cat hw2-input15.txt hw2-input15.txt
+cd /home
+cd shayne
+ls -1
+ls -1 | cat meme
+exit

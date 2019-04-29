@@ -1,0 +1,37 @@
++------------+
+| Lecture 10 |
++------------+
+
+#### Homework 2 ####
+
+Make sure you end child processes when calling fork
+	or else may cause fork bomb
+
+####################
+
+
+							 --------------+   +-----+   +-------+
+-------------->  Ready Queue |-->| mem |-->|  CPU  |--> exit the system
+							 --------------+   +-----+   +-------+
+	Arriving
+		Jobs
+
+Mathematical modesl can be categorized as:
+
+ -- Deterministic
+ 		-- the behavior is predictable with 100% certainty
+
+ -- Stochastic
+ 		-- the behavior is uncertain, based on random events
+
+
+Poisson process
+
+-- Randomly generated values are the times between
+			process arrivals
+
+-- Events occur continuously and independently, but we
+			have arrivals occuring at a constant average rate
+	
+
+	Memoryless or Markov (M/M/1)

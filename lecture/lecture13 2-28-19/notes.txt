@@ -1,0 +1,76 @@
++------------+
+| Lecture 13 |
++------------+
+
+#### Shared Memory ####
+
+#define SHM_SHARED_KEY 8999 - Unique key for assigning shared memory
+
+int shmid = shmget(key_t key, size_t size, flags) - sets up shared memory for given key with size
+						(shmid won't be same as key it changes every time but consistent in process)
+
+shmat(int shmid, NULL, 0) - attaches memory to that assigned space
+
+shmctl(int shmid, IPC_RMID, 0) - Remove shared memory segment 
+		(if you don't do this the memory still exists and you can keep changing it until reboot or you remove it) 
+
+
+A CRITICAL SECTION guarantees MUTUAL EXCLUSION among multiple processes
+	(or threads) for access to one or more shared resources (e.g. variable x)
+
+
+MUTUAL EXCLUSION here means that no more than one process can
+	be running in its critical section at any given time
+
+If we sychronized the critical sections in the diagram (last class), then
+	x would be guaranteed to be 10 when both processes get to
+		<point A> and <point B>
+
+To synchronize processes (or threads), first we must identify the
+	critical sections in the code
+
+-- the OS must control access to the critical sections by providing us
+		(as programmers) some mechanism to define the critical sections, etc.
+
+Synchronization:
+(1) data synchronization
+(2) process/thread synchronization -- sequence of events
+
+
+Multiple threads
+-- in ONE process, we can have multiple threads of execution
+
+
+										ONE PROCESS
+		+--------------------------------------------+
+		|								main()											 |
+		|									|													 |
+		|									|													 |
+		|									v													 |
+		|						create a few threads...					 |
+		|																						 |
+		|	Thread1        Thread2        Thread3			 |
+		|		|								|							|					 |
+		|	  |							  /							|					 |
+		|		|							 |						   \ 				 |
+		|		v							 v								v				 |
+		|																						 |
+		|																						 |
+		|			these threads join() back in					 |
+		|					to the parent thread							 |
+		|																						 |
+		|																						 |
+		+--------------------------------------------+
+
+In java you might make a lock object:
+-- dummy object to lock/synchronize
+-- causes more overhead
+-- java has synchronized() command
+			apply to lock object
+	 -- synchronized() only one thread can
+	 			be in this block of code at one time
+
+in c:
+int rc = pthread_create();
+
+
